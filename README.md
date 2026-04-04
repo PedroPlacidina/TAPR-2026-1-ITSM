@@ -1,18 +1,5 @@
 # 📊 CorpTech ITSM Analytics
 
-<p align="center">
-  <b>Pipeline de Dados em Nuvem para Análise de ITSM</b>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Azure-Cloud-blue?logo=microsoftazure">
-  <img src="https://img.shields.io/badge/Python-ETL-yellow?logo=python">
-  <img src="https://img.shields.io/badge/PowerBI-Dashboard-F2C811?logo=powerbi">
-  <img src="https://img.shields.io/badge/Status-AV1%20Concluída-success">
-</p>
-
----
-
 ## 📚 Informações Acadêmicas
 
 - **Disciplina:** TAPR — Tópicos Avançados em Programação  
