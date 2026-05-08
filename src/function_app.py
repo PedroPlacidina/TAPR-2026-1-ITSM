@@ -5,17 +5,60 @@ app = func.FunctionApp()
 
 @app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
-def timer_trigger_1(myTimer: func.TimerRequest) -> None:
+def extract_chamado(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
-        logging.info('The timer is past due!')
+        logging.info('Tabela analista')
 
-    logging.info('Executando azure function 1')
-
-@app.timer_trigger(schedule="0 */3 * * * *", arg_name="myTimer", run_on_startup=False,
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
-def timer_trigger_2(myTimer: func.TimerRequest) -> None:
-    
+def extract_chamado(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
-        logging.info('The timer is past due!')
+        logging.info('Tabela categoria')
 
-    logging.info('Executando azure function 2')
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela Chamado')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela chamado sla')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela chamado status historico')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela cliente organizacao')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela csat avaliacao')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela fila')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela sla')
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tabela solicitante')
