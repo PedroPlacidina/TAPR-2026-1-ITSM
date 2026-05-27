@@ -15,6 +15,11 @@ def extract_analista(myTimer: func.TimerRequest) -> None:
         sql_user = os.getenv("SQL_USER_SOURCE")
         sql_pass = os.getenv("SQL_PASSWORD_SOURCE")
         
+        sql_server = os.getenv("SQL_SERVER_TARGET")
+        sql_database = os.getenv("SQL_DATABASE_TARGET")
+        sql_user = os.getenv("SQL_USER_TARGET")
+        sql_pass = os.getenv("SQL_PASSWORD_TARGET")
+        
         logging.info(f'servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass}')
 
         # Configura a string de conexão para o banco de dados SQL Server
