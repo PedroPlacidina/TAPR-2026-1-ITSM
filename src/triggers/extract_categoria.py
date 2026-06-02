@@ -9,7 +9,7 @@ bp = func.Blueprint()
 def extract_categoria(myTimer: func.TimerRequest) -> None:
     logging.info('Iniciando sincronização: itsm.categoria')
 
-    # 1. Strings de conexão usando as variáveis que você criou no portal
+    
     conn_str_source = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER={os.getenv('SQL_SERVER_SOURCE')};"
@@ -29,23 +29,18 @@ def extract_categoria(myTimer: func.TimerRequest) -> None:
     )
 
     try:
-        # 2. EXTRAIR os dados da Origem
+       
         with pyodbc.connect(conn_str_source) as src_conn:
             cursor_src = src_conn.cursor()
-            # Pegando as colunas conforme o seu DDL
             cursor_src.execute("SELECT id_categoria, cd_categoria, nm_categoria, ds_descricao, fl_ativo FROM itsm.categoria")
             rows = cursor_src.fetchall()
 
         if rows:
-            # 3. CARREGAR no seu Banco (Target)
             with pyodbc.connect(conn_str_target) as tgt_conn:
                 cursor_tgt = tgt_conn.cursor()
                 
-                # Comando para permitir inserir o ID que vem do professor
                 cursor_tgt.execute("SET IDENTITY_INSERT itsm.categoria ON")
 
-                # Usamos um comando que insere ou atualiza (UPSERT/MERGE) 
-                # ou um simples DELETE/INSERT para fins acadêmicos
                 cursor_tgt.execute("DELETE FROM itsm.categoria") # Limpa a tabela antes de carregar
                 
                 insert_sql = "INSERT INTO itsm.categoria (id_categoria, cd_categoria, nm_categoria, ds_descricao, fl_ativo) VALUES (?, ?, ?, ?, ?)"
