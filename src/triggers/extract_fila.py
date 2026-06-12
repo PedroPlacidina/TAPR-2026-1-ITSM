@@ -5,47 +5,30 @@ import pyodbc
 
 bp = func.Blueprint()
 
-@bp.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
+@bp.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
 def extract_fila(myTimer: func.TimerRequest) -> None:
-        logging.info('Tabela fila')
-        
-        sql_server = os.getenv("SQL_SERVER_SOURCE")
-        sql_database = os.getenv("SQL_DATABASE_SOURCE")
-        sql_user = os.getenv("SQL_USER_SOURCE")
-        sql_pass = os.getenv("SQL_PASSWORD_SOURCE")
-        
-        logging.info(f'servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass}')
+    logging.info('Sincronizando: fila')
+    
+    src_conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={os.getenv('SQL_SERVER_SOURCE')};DATABASE={os.getenv('SQL_DATABASE_SOURCE')};UID={os.getenv('SQL_USER_SOURCE')};PWD={os.getenv('SQL_PASSWORD_SOURCE')};Encrypt=yes;TrustServerCertificate=no;"
+    tgt_conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={os.getenv('SQL_SERVER_TARGET')};DATABASE={os.getenv('SQL_DATABASE_TARGET')};UID={os.getenv('SQL_USER_TARGET')};PWD={os.getenv('SQL_PASSWORD_TARGET')};Encrypt=yes;TrustServerCertificate=no;"
 
-        # Configura a string de conexão para o banco de dados SQL Server
-        conn_str = (
-                "DRIVER={ODBC Driver 18 for SQL Server};"
-                f"SERVER={sql_server};"
-                f"DATABASE={sql_database};"
-                f"UID={sql_user};"
-                f"PWD={sql_pass};"
-                "Encrypt=yes;"
-                "TrustServerCertificate=no;"
-                "Connection Timeout=30;"
-        )
+    try:
+        with pyodbc.connect(src_conn_str) as src_conn:
+            cursor_src = src_conn.cursor()
+            cursor_src.execute("SELECT id_fila, cd_fila, nm_fila, ds_descricao, fl_ativo FROM itsm.fila")
+            rows = cursor_src.fetchall()
 
-        try:
-                # Estabelece a conexão com o banco de dados usando pyodbc
-                with pyodbc.connect(conn_str) as conn:
-
-                        # Cria um cursor para executar a consulta
-                        cursor = conn.cursor()
-
-                        query = "SELECT TOP 10 * FROM itsm.chamado"
-
-                        # Executa a consulta SQL
-                        cursor.execute(query)
-
-                        # Busca todos os resultados da consulta
-                        rows = cursor.fetchall()
-
-                logging.info(rows)
-
-        except Exception as e:
-                logging.error(f"Erro ao ler itsm.chamado: {str(e)}")
-        raise
+        if rows:
+            with pyodbc.connect(tgt_conn_str) as tgt_conn:
+                cursor_tgt = tgt_conn.cursor()
+                cursor_tgt.execute("SET IDENTITY_INSERT itsm.fila ON")
+                cursor_tgt.execute("DELETE FROM itsm.fila")
+                
+                insert_sql = "INSERT INTO itsm.fila (id_fila, cd_fila, nm_fila, ds_descricao, fl_ativo) VALUES (?, ?, ?, ?, ?)"
+                for row in rows:
+                    cursor_tgt.execute(insert_sql, tuple(row))
+                
+                cursor_tgt.execute("SET IDENTITY_INSERT itsm.fila OFF")
+                tgt_conn.commit()
+    except Exception as e:
+        logging.error(f"Erro em fila: {str(e)}")

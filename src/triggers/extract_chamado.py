@@ -5,56 +5,42 @@ import pyodbc
 
 bp = func.Blueprint()
 
-@bp.timer_trigger(
-    schedule="0 */5 * * * *",
-    arg_name="myTimer",
-    run_on_startup=False,
-    use_monitor=False
-)
+@bp.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
 def extract_chamado(myTimer: func.TimerRequest) -> None:
-
-    logging.info('Tabela Chamado')
-
-    sql_server = os.getenv("SQL_SERVER_SOURCE")
-    sql_database = os.getenv("SQL_DATABASE_SOURCE")
-    sql_user = os.getenv("SQL_USER_SOURCE")
-    sql_pass = os.getenv("SQL_PASSWORD_SOURCE")
-
-    logging.info(
-        f'servidor={sql_server}, '
-        f'banco de dados={sql_database}, '
-        f'usuario={sql_user}'
-    )
-
-    # Configura a string de conexão para o banco de dados SQL Server
-    conn_str = (
-        "DRIVER={ODBC Driver 18 for SQL Server};"
-        f"SERVER={sql_server};"
-        f"DATABASE={sql_database};"
-        f"UID={sql_user};"
-        f"PWD={sql_pass};"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "Connection Timeout=30;"
-    )
+    logging.info('Sincronizando: chamado')
+    
+    src_conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={os.getenv('SQL_SERVER_SOURCE')};DATABASE={os.getenv('SQL_DATABASE_SOURCE')};UID={os.getenv('SQL_USER_SOURCE')};PWD={os.getenv('SQL_PASSWORD_SOURCE')};Encrypt=yes;TrustServerCertificate=no;"
+    tgt_conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={os.getenv('SQL_SERVER_TARGET')};DATABASE={os.getenv('SQL_DATABASE_TARGET')};UID={os.getenv('SQL_USER_TARGET')};PWD={os.getenv('SQL_PASSWORD_TARGET')};Encrypt=yes;TrustServerCertificate=no;"
 
     try:
-        # Estabelece a conexão com o banco de dados usando pyodbc
-        with pyodbc.connect(conn_str) as conn:
+        with pyodbc.connect(src_conn_str) as src_conn:
+            cursor_src = src_conn.cursor()
+            # Chamado tem muitas colunas, selecione as principais do DDL
+            cursor_src.execute("""
+                SELECT id_chamado, nr_chamado, ds_tipo_chamado, ds_status_chamado, ds_prioridade, 
+                       dt_criacao, dt_ultima_atualizacao, id_analista_atual, id_reporter, 
+                       id_categoria, id_cliente_organizacao, id_fila_atual, ds_titulo
+                FROM itsm.chamado
+            """)
+            rows = cursor_src.fetchall()
 
-            # Cria um cursor para executar a consulta
-            cursor = conn.cursor()
-
-            query = "SELECT TOP 10 * FROM itsm.chamado"
-
-            # Executa a consulta SQL
-            cursor.execute(query)
-
-            # Busca todos os resultados da consulta
-            rows = cursor.fetchall()
-
-            logging.info(rows)
-
+        if rows:
+            with pyodbc.connect(tgt_conn_str) as tgt_conn:
+                cursor_tgt = tgt_conn.cursor()
+                cursor_tgt.execute("SET IDENTITY_INSERT itsm.chamado ON")
+                cursor_tgt.execute("DELETE FROM itsm.chamado")
+                
+                insert_sql = """
+                    INSERT INTO itsm.chamado (id_chamado, nr_chamado, ds_tipo_chamado, ds_status_chamado, ds_prioridade, 
+                                            dt_criacao, dt_ultima_atualizacao, id_analista_atual, id_reporter, 
+                                            id_categoria, id_cliente_organizacao, id_fila_atual, ds_titulo) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                for row in rows:
+                    cursor_tgt.execute(insert_sql, tuple(row))
+                
+                cursor_tgt.execute("SET IDENTITY_INSERT itsm.chamado OFF")
+                tgt_conn.commit()
+                logging.info(f"Sucesso! {len(rows)} chamados sincronizados.")
     except Exception as e:
-        logging.error(f"Erro ao ler itsm.chamado: {str(e)}")
-        raise
+        logging.error(f"Erro em chamado: {str(e)}")
