@@ -25,4 +25,11 @@ Essas limitações impactam a tomada de decisão da liderança de TI.
 
 - Fellipe Negherbon Prim  
 - Lucas Felipe Jacintho
-- Pedro Henrique Placidina Maria 
+- Pedro Henrique Placidina Maria
+
+---
+
+## 👥 Prints Dashboard
+
+<img width="1539" height="845" alt="image" src="https://github.com/user-attachments/assets/d31767cb-2329-4669-b3a6-bda25e06f2ae" />
+
